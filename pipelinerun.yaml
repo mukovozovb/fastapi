@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: clone-build-push-run
+spec:
+  serviceAccountName: kaniko
+  pipelineRef:
+    name: clone-build-push
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  - name: docker-credentials
+    secret:
+      secretName: docker-creadential
+      items:
+        - key: .dockerconfigjson
+          path: config.json
+  - name: empty-dir
+    emptyDir: {}
+  params:
+  - name: repo-url
+    value: https://github.com/mukovozovb/fastapi
+  - name: image-reference
+    value: docker.io/mukovozovbohdan/fastapi:latest
+  - name: deployment-manifest
+    value: https://raw.githubusercontent.com/mukovozovb/fastapi/deployment.yaml
+  
